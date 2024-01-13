@@ -7,11 +7,10 @@ counter = 0
 
 
 class MatrixMultiplication(MRJob):
-    f = open('Output.txt', 'w')
+    result_file = open('Output.txt', 'w')
 
     def mapper(self, _, line):
         global counter
-        # This function automatically reads in lines of code
         line = line.split()
         line = list(map(int, line))
         if len(line) == 3:
@@ -23,7 +22,7 @@ class MatrixMultiplication(MRJob):
             counter = 1
             return
 
-        filename = os.environ['mapreduce_map_input_file']
+        filename = os.environ['map-reduce-input-matrix']
 
         if 'A' in filename:
             yield col, (0, row, value)
@@ -31,20 +30,20 @@ class MatrixMultiplication(MRJob):
             yield row, (1, col, value)
 
     def reducer_multiply(self, keys, values):
-        matrix0 = []
-        matrix1 = []
+        matrix_a = []
+        matrix_b = []
 
         for value in values:
             if value[0] == 0:
-                matrix0.append(value)
+                matrix_a.append(value)
             elif value[0] == 1:
-                matrix1.append(value)
+                matrix_b.append(value)
 
-        for row0, col0, val0 in matrix0:
-            for row1, col1, val1 in matrix1:
-                yield (col0, col1), val0 * val1
+        for row_a, col_a, val_a in matrix_a:
+            for row_b, col_b, val_b in matrix_b:
+                yield (col_a, col_a), val_a * val_b
 
-    def changeKey(self, key, value):
+    def change_key(self, key, value):
         yield key, value
 
     def reducer_sum(self, key, values):
@@ -52,14 +51,14 @@ class MatrixMultiplication(MRJob):
         yield key, total
         x = key[0]
         y = key[1]
-        self.f.write(str(x) + " " + str(y) + " ")
-        self.f.write(str(total) + "\n")
+        self.result_file.write(str(x) + " " + str(y) + " ")
+        self.result_file.write(str(total) + "\n")
 
     def steps(self):
         return [
             MRStep(mapper=self.mapper,
                    reducer=self.reducer_multiply),
-            MRStep(mapper=self.changeKey,
+            MRStep(mapper=self.change_key,
                    reducer=self.reducer_sum)
         ]
 
@@ -70,4 +69,4 @@ if __name__ == '__main__':
     t1 = time.time()
 
     totalWithoutWrite = t1 - t0
-    print("time: " + str(totalWithoutWrite))
+    print("Time: " + str(totalWithoutWrite))
