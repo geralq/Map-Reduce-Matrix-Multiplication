@@ -43,7 +43,7 @@ class MatrixMultiplication(MRJob):
             for row1, col1, val1 in matrix_b:
                 yield (col0, col1), val0 * val1
 
-    def changeKey(self, key, value):
+    def change_key(self, key, value):
         yield key, value
 
     def reducer_sum(self, key, values):
@@ -58,7 +58,7 @@ class MatrixMultiplication(MRJob):
         return [
             MRStep(mapper=self.mapper,
                    reducer=self.reducer_multiply),
-            MRStep(mapper=self.changeKey,
+            MRStep(mapper=self.change_key,
                    reducer=self.reducer_sum)
         ]
 
@@ -68,5 +68,5 @@ if __name__ == '__main__':
     MatrixMultiplication.run()
     t1 = time.time()
 
-    totalWithoutWrite = t1 - t0
-    print("Total for the matrix multiplication: " + str(totalWithoutWrite))
+    time_execution = t1 - t0
+    print("Total for the matrix multiplication: " + str(time_execution))
