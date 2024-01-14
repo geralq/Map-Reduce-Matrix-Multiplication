@@ -7,7 +7,7 @@ counter = 0
 
 
 class MatrixMultiplication(MRJob):
-    result_file = open('Output.txt', 'w')
+    f = open('Output.txt', 'w')
 
     def mapper(self, _, line):
         global counter
@@ -22,7 +22,7 @@ class MatrixMultiplication(MRJob):
             counter = 1
             return
 
-        filename = os.environ['map-reduce-input-matrix']
+        filename = os.environ['mapreduce_map_input_file']
 
         if 'A' in filename:
             yield col, (0, row, value)
@@ -39,11 +39,11 @@ class MatrixMultiplication(MRJob):
             elif value[0] == 1:
                 matrix_b.append(value)
 
-        for row_a, col_a, val_a in matrix_a:
-            for row_b, col_b, val_b in matrix_b:
-                yield (col_a, col_a), val_a * val_b
+        for row0, col0, val0 in matrix_a:
+            for row1, col1, val1 in matrix_b:
+                yield (col0, col1), val0 * val1
 
-    def change_key(self, key, value):
+    def changeKey(self, key, value):
         yield key, value
 
     def reducer_sum(self, key, values):
@@ -51,14 +51,14 @@ class MatrixMultiplication(MRJob):
         yield key, total
         x = key[0]
         y = key[1]
-        self.result_file.write(str(x) + " " + str(y) + " ")
-        self.result_file.write(str(total) + "\n")
+        self.f.write(str(x) + " " + str(y) + " ")
+        self.f.write(str(total) + "\n")
 
     def steps(self):
         return [
             MRStep(mapper=self.mapper,
                    reducer=self.reducer_multiply),
-            MRStep(mapper=self.change_key,
+            MRStep(mapper=self.changeKey,
                    reducer=self.reducer_sum)
         ]
 
@@ -69,4 +69,4 @@ if __name__ == '__main__':
     t1 = time.time()
 
     totalWithoutWrite = t1 - t0
-    print("Time: " + str(totalWithoutWrite))
+    print("Total for the matrix multiplication: " + str(totalWithoutWrite))
